@@ -1,0 +1,2125 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "f361e6f5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "from sklearn.metrics import r2_score,mean_squared_error,mean_absolute_error\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.preprocessing import normalize\n",
+    "from sklearn.neighbors import KNeighborsClassifier\n",
+    "from sklearn.linear_model import Lasso\n",
+    "from sklearn.linear_model import LinearRegression,LogisticRegression\n",
+    "from sklearn.model_selection import GridSearchCV\n",
+    "from sklearn.tree import DecisionTreeClassifier as dtc\n",
+    "from sklearn.svm import SVC\n",
+    "from sklearn.neural_network import MLPClassifier"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "1b7ed810",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "data=pd.read_csv('/home/ahmadreza/Phishing_Legitimate_full.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "38624905",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>NumDots</th>\n",
+       "      <th>SubdomainLevel</th>\n",
+       "      <th>PathLevel</th>\n",
+       "      <th>UrlLength</th>\n",
+       "      <th>NumDash</th>\n",
+       "      <th>NumDashInHostname</th>\n",
+       "      <th>AtSymbol</th>\n",
+       "      <th>TildeSymbol</th>\n",
+       "      <th>NumUnderscore</th>\n",
+       "      <th>...</th>\n",
+       "      <th>IframeOrFrame</th>\n",
+       "      <th>MissingTitle</th>\n",
+       "      <th>ImagesOnlyInForm</th>\n",
+       "      <th>SubdomainLevelRT</th>\n",
+       "      <th>UrlLengthRT</th>\n",
+       "      <th>PctExtResourceUrlsRT</th>\n",
+       "      <th>AbnormalExtFormActionR</th>\n",
+       "      <th>ExtMetaScriptLinkRT</th>\n",
+       "      <th>PctExtNullSelfRedirectHyperlinksRT</th>\n",
+       "      <th>CLASS_LABEL</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>5</td>\n",
+       "      <td>72</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>3</td>\n",
+       "      <td>144</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>58</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>6</td>\n",
+       "      <td>79</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>4</td>\n",
+       "      <td>46</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9995</th>\n",
+       "      <td>9996</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>50</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>-1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9996</th>\n",
+       "      <td>9997</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>59</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9997</th>\n",
+       "      <td>9998</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>4</td>\n",
+       "      <td>57</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9998</th>\n",
+       "      <td>9999</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>49</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9999</th>\n",
+       "      <td>10000</td>\n",
+       "      <td>3</td>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>52</td>\n",
+       "      <td>3</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>...</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>10000 rows × 50 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "         id  NumDots  SubdomainLevel  PathLevel  UrlLength  NumDash  \\\n",
+       "0         1        3               1          5         72        0   \n",
+       "1         2        3               1          3        144        0   \n",
+       "2         3        3               1          2         58        0   \n",
+       "3         4        3               1          6         79        1   \n",
+       "4         5        3               0          4         46        0   \n",
+       "...     ...      ...             ...        ...        ...      ...   \n",
+       "9995   9996        3               1          1         50        0   \n",
+       "9996   9997        2               1          4         59        1   \n",
+       "9997   9998        2               1          4         57        0   \n",
+       "9998   9999        3               1          1         49        0   \n",
+       "9999  10000        3               1          2         52        3   \n",
+       "\n",
+       "      NumDashInHostname  AtSymbol  TildeSymbol  NumUnderscore  ...  \\\n",
+       "0                     0         0            0              0  ...   \n",
+       "1                     0         0            0              2  ...   \n",
+       "2                     0         0            0              0  ...   \n",
+       "3                     0         0            0              0  ...   \n",
+       "4                     0         0            0              0  ...   \n",
+       "...                 ...       ...          ...            ...  ...   \n",
+       "9995                  0         0            0              0  ...   \n",
+       "9996                  0         0            0              0  ...   \n",
+       "9997                  0         0            0              0  ...   \n",
+       "9998                  0         0            0              0  ...   \n",
+       "9999                  0         0            0              0  ...   \n",
+       "\n",
+       "      IframeOrFrame  MissingTitle  ImagesOnlyInForm  SubdomainLevelRT  \\\n",
+       "0                 0             0                 1                 1   \n",
+       "1                 0             0                 0                 1   \n",
+       "2                 0             0                 0                 1   \n",
+       "3                 0             0                 0                 1   \n",
+       "4                 1             0                 0                 1   \n",
+       "...             ...           ...               ...               ...   \n",
+       "9995              0             0                 0                 1   \n",
+       "9996              1             0                 0                 1   \n",
+       "9997              0             0                 0                 1   \n",
+       "9998              1             0                 0                 1   \n",
+       "9999              0             0                 0                 1   \n",
+       "\n",
+       "      UrlLengthRT  PctExtResourceUrlsRT  AbnormalExtFormActionR  \\\n",
+       "0               0                     1                       1   \n",
+       "1              -1                     1                       1   \n",
+       "2               0                    -1                       1   \n",
+       "3              -1                     1                       1   \n",
+       "4               1                    -1                       0   \n",
+       "...           ...                   ...                     ...   \n",
+       "9995            1                    -1                       1   \n",
+       "9996            0                     0                       1   \n",
+       "9997            0                     1                       1   \n",
+       "9998            1                     0                       1   \n",
+       "9999            1                     1                       1   \n",
+       "\n",
+       "      ExtMetaScriptLinkRT  PctExtNullSelfRedirectHyperlinksRT  CLASS_LABEL  \n",
+       "0                      -1                                   1            1  \n",
+       "1                       1                                   1            1  \n",
+       "2                      -1                                   0            1  \n",
+       "3                       1                                  -1            1  \n",
+       "4                      -1                                  -1            1  \n",
+       "...                   ...                                 ...          ...  \n",
+       "9995                    0                                   1            0  \n",
+       "9996                    0                                   1            0  \n",
+       "9997                    0                                   1            0  \n",
+       "9998                    0                                   1            0  \n",
+       "9999                    1                                   1            0  \n",
+       "\n",
+       "[10000 rows x 50 columns]"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "1153f103",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "id                                    0\n",
+       "NumDots                               0\n",
+       "SubdomainLevel                        0\n",
+       "PathLevel                             0\n",
+       "UrlLength                             0\n",
+       "NumDash                               0\n",
+       "NumDashInHostname                     0\n",
+       "AtSymbol                              0\n",
+       "TildeSymbol                           0\n",
+       "NumUnderscore                         0\n",
+       "NumPercent                            0\n",
+       "NumQueryComponents                    0\n",
+       "NumAmpersand                          0\n",
+       "NumHash                               0\n",
+       "NumNumericChars                       0\n",
+       "NoHttps                               0\n",
+       "RandomString                          0\n",
+       "IpAddress                             0\n",
+       "DomainInSubdomains                    0\n",
+       "DomainInPaths                         0\n",
+       "HttpsInHostname                       0\n",
+       "HostnameLength                        0\n",
+       "PathLength                            0\n",
+       "QueryLength                           0\n",
+       "DoubleSlashInPath                     0\n",
+       "NumSensitiveWords                     0\n",
+       "EmbeddedBrandName                     0\n",
+       "PctExtHyperlinks                      0\n",
+       "PctExtResourceUrls                    0\n",
+       "ExtFavicon                            0\n",
+       "InsecureForms                         0\n",
+       "RelativeFormAction                    0\n",
+       "ExtFormAction                         0\n",
+       "AbnormalFormAction                    0\n",
+       "PctNullSelfRedirectHyperlinks         0\n",
+       "FrequentDomainNameMismatch            0\n",
+       "FakeLinkInStatusBar                   0\n",
+       "RightClickDisabled                    0\n",
+       "PopUpWindow                           0\n",
+       "SubmitInfoToEmail                     0\n",
+       "IframeOrFrame                         0\n",
+       "MissingTitle                          0\n",
+       "ImagesOnlyInForm                      0\n",
+       "SubdomainLevelRT                      0\n",
+       "UrlLengthRT                           0\n",
+       "PctExtResourceUrlsRT                  0\n",
+       "AbnormalExtFormActionR                0\n",
+       "ExtMetaScriptLinkRT                   0\n",
+       "PctExtNullSelfRedirectHyperlinksRT    0\n",
+       "CLASS_LABEL                           0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "32ce46d6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x=data.drop(['CLASS_LABEL','id'],axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "18ee5987",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y=data['CLASS_LABEL']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "0384c6a2",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(10000,)"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "y.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "23fed8ef",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(10000, 48)"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "ee792d43",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(10000, 50)"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "data.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "068e1ab9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lasso=Lasso(alpha=0.1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "3c2abf24",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Lasso(alpha=0.1)"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lasso.fit(x,y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "ce3cd68b",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(48,)"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lasso.coef_.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "404adc41",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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",
+      "text/plain": [
+       "<Figure size 432x288 with 1 Axes>"
+      ]
+     },
+     "metadata": {
+      "needs_background": "light"
+     },
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "plt.plot(np.arange(1,49),lasso.coef_)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "73f2895a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(48,)"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x.columns.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "d7f27362",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=KNeighborsClassifier()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "59b577e7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "xtrain,xtest,ytrain,ytest=train_test_split(x,y,test_size=0.3,random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "23e9b257",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "KNeighborsClassifier()"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "b35dca79",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.867"
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "a9bf3df8",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9138571428571428"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "40b4b0f7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "lasso=Lasso(alpha=0.1,normalize=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "1ed0c37b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/home/ahmadreza/anaconda3/lib/python3.9/site-packages/sklearn/linear_model/_base.py:141: FutureWarning: 'normalize' was deprecated in version 1.0 and will be removed in 1.2.\n",
+      "If you wish to scale the data, use Pipeline with a StandardScaler in a preprocessing stage. To reproduce the previous behavior:\n",
+      "\n",
+      "from sklearn.pipeline import make_pipeline\n",
+      "\n",
+      "model = make_pipeline(StandardScaler(with_mean=False), Lasso())\n",
+      "\n",
+      "If you wish to pass a sample_weight parameter, you need to pass it as a fit parameter to each step of the pipeline as follows:\n",
+      "\n",
+      "kwargs = {s[0] + '__sample_weight': sample_weight for s in model.steps}\n",
+      "model.fit(X, y, **kwargs)\n",
+      "\n",
+      "Set parameter alpha to: original_alpha * np.sqrt(n_samples). \n",
+      "  warnings.warn(\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "Lasso(alpha=0.1, normalize=True)"
+      ]
+     },
+     "execution_count": 23,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lasso.fit(x,y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "6e48e136",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([ 0.,  0.,  0., -0., -0.,  0., -0.,  0., -0., -0., -0., -0.,  0.,\n",
+       "        0., -0., -0.,  0.,  0., -0.,  0.,  0., -0., -0.,  0.,  0.,  0.,\n",
+       "        0., -0.,  0.,  0., -0., -0., -0.,  0.,  0., -0.,  0., -0., -0.,\n",
+       "       -0.,  0., -0., -0.,  0.,  0.,  0.,  0., -0.])"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "lasso.coef_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "7ac291b8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LinearRegression()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "041557da",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "LinearRegression()"
+      ]
+     },
+     "execution_count": 26,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "f7b7afed",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.6923539856243817"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "823e3867",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.691036579091491"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "eb34c9e9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LinearRegression(normalize=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "id": "6dc35409",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/home/ahmadreza/anaconda3/lib/python3.9/site-packages/sklearn/linear_model/_base.py:141: FutureWarning: 'normalize' was deprecated in version 1.0 and will be removed in 1.2.\n",
+      "If you wish to scale the data, use Pipeline with a StandardScaler in a preprocessing stage. To reproduce the previous behavior:\n",
+      "\n",
+      "from sklearn.pipeline import make_pipeline\n",
+      "\n",
+      "model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())\n",
+      "\n",
+      "If you wish to pass a sample_weight parameter, you need to pass it as a fit parameter to each step of the pipeline as follows:\n",
+      "\n",
+      "kwargs = {s[0] + '__sample_weight': sample_weight for s in model.steps}\n",
+      "model.fit(X, y, **kwargs)\n",
+      "\n",
+      "\n",
+      "  warnings.warn(\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "LinearRegression(normalize=True)"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "id": "10cbcad6",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.6923539856243818"
+      ]
+     },
+     "execution_count": 31,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "id": "b3455ac1",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.6910365790914909"
+      ]
+     },
+     "execution_count": 32,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "id": "9999841d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LogisticRegression()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "id": "2002d4f9",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "id": "bc7d41b3",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9336666666666666"
+      ]
+     },
+     "execution_count": 35,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "id": "fb65ffb7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9364285714285714"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "id": "c0518cf5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LogisticRegression(C=6,penalty='l2')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "id": "bbb4ab0d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "id": "b09f7cae",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9353333333333333"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "id": "90bdff8c",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9377142857142857"
+      ]
+     },
+     "execution_count": 40,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "id": "525d1df1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X=normalize(x)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "id": "165f0582",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Xtrain,Xtest,Ytrain,Ytest=train_test_split(X,y,test_size=0.3,random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "id": "ba525a5a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LogisticRegression(C=10.e7)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "id": "f5480aff",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "id": "c0b33075",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9273333333333333"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "id": "e6036e77",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9304285714285714"
+      ]
+     },
+     "execution_count": 46,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 47,
+   "id": "431071c5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=KNeighborsClassifier(n_neighbors=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 48,
+   "id": "c85e4b19",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "KNeighborsClassifier(n_neighbors=1)"
+      ]
+     },
+     "execution_count": 48,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "id": "813a7390",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8983333333333333"
+      ]
+     },
+     "execution_count": 49,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "id": "bc10c51d",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1.0"
+      ]
+     },
+     "execution_count": 50,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "id": "fdae0882",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LogisticRegression()\n",
+    "model_cv=GridSearchCV(model,{'C':np.arange(1,10)},cv=10)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "id": "bc160ab1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model_cv.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 53,
+   "id": "90b3f5b2",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "{'C': 8}\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(model_cv.best_params_)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "id": "8ec29acd",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=LogisticRegression(C=7)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 55,
+   "id": "020b549f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 56,
+   "id": "87382640",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9296666666666666"
+      ]
+     },
+     "execution_count": 56,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 57,
+   "id": "a92065de",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.936"
+      ]
+     },
+     "execution_count": 57,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 58,
+   "id": "51695cd8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model=LogisticRegression()\n",
+    "model_cv=GridSearchCV(model,{'C':np.arange(1,10)},cv=10)\n",
+    "model_cv.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 59,
+   "id": "a378dfbd",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'C': 9}"
+      ]
+     },
+     "execution_count": 59,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_params_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "id": "390c2b35",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model=LogisticRegression(C=10.e10+10000)\n",
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "id": "1ab7a442",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9276666666666666"
+      ]
+     },
+     "execution_count": 61,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "id": "7b3e5f18",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9357142857142857"
+      ]
+     },
+     "execution_count": 62,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "id": "e47ed999",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8818571428571428"
+      ]
+     },
+     "execution_count": 63,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_score_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "id": "06d99059",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=dtc()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "id": "ec0d16d7",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "DecisionTreeClassifier()"
+      ]
+     },
+     "execution_count": 65,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 66,
+   "id": "c61d43cf",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.966"
+      ]
+     },
+     "execution_count": 66,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 67,
+   "id": "8fe70255",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1.0"
+      ]
+     },
+     "execution_count": 67,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 68,
+   "id": "7fb5ba0b",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.034"
+      ]
+     },
+     "execution_count": 68,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "mean_squared_error(model.predict(xtest),ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 69,
+   "id": "ece34fa1",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.034"
+      ]
+     },
+     "execution_count": 69,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "mean_absolute_error(model.predict(xtest),ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 70,
+   "id": "805624aa",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8638983169203303"
+      ]
+     },
+     "execution_count": 70,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "r2_score(model.predict(xtest),ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 71,
+   "id": "84a7198a",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "DecisionTreeClassifier()"
+      ]
+     },
+     "execution_count": 71,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 72,
+   "id": "527de2c1",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9643333333333334"
+      ]
+     },
+     "execution_count": 72,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "id": "b9895bc6",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1.0"
+      ]
+     },
+     "execution_count": 73,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "id": "0efcfcf4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=SVC()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "id": "f26d9e05",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "SVC()"
+      ]
+     },
+     "execution_count": 75,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 76,
+   "id": "2cc03bca",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8896666666666667"
+      ]
+     },
+     "execution_count": 76,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "id": "6fa55aef",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.8815714285714286"
+      ]
+     },
+     "execution_count": 77,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 78,
+   "id": "9c45e0f3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=SVC(C=9,kernel='rbf')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 79,
+   "id": "b24bbf2e",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "SVC(C=9)"
+      ]
+     },
+     "execution_count": 79,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 80,
+   "id": "4d407f88",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9356666666666666"
+      ]
+     },
+     "execution_count": 80,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 81,
+   "id": "63365ad4",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9308571428571428"
+      ]
+     },
+     "execution_count": 81,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "13f5d05c",
+   "metadata": {},
+   "source": [
+    "model=MLPClassifier()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 82,
+   "id": "dab2a961",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=MLPClassifier()\n",
+    "model_cv=GridSearchCV(model,{'hidden_layer_sizes':np.arange(1,5),'learning_rate_init':[0.1,.01,.001,.0001,.00001]})"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "id": "9ae28e1c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model_cv.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "id": "46382934",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'hidden_layer_sizes': 4, 'learning_rate_init': 0.001}"
+      ]
+     },
+     "execution_count": 84,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_params_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "id": "2756bb61",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9441428571428572"
+      ]
+     },
+     "execution_count": 85,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_score_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "id": "49e86d21",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=MLPClassifier(hidden_layer_sizes=(3),learning_rate_init=0.001,random_state=42)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "id": "be27589a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "id": "993863e5",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9396666666666667"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtest,ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "id": "de9ec375",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.943"
+      ]
+     },
+     "execution_count": 89,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(xtrain,ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "id": "d3cb1b8d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model_cv.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "id": "fcc3a138",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'hidden_layer_sizes': 1, 'learning_rate_init': 0.1}"
+      ]
+     },
+     "execution_count": 91,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_params_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "id": "df167182",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9421428571428571"
+      ]
+     },
+     "execution_count": 92,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model_cv.best_score_"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "id": "63bcb2c5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model=MLPClassifier(hidden_layer_sizes=(2),learning_rate_init=0.01)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "id": "878861b7",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%capture\n",
+    "model.fit(Xtrain,Ytrain)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "id": "2dfd58eb",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.9406666666666667"
+      ]
+     },
+     "execution_count": 95,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtest,Ytest)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 96,
+   "id": "b30a4a80",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.942"
+      ]
+     },
+     "execution_count": 96,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model.score(Xtrain,Ytrain)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3.9.12 ('base')",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.12"
+  },
+  "vscode": {
+   "interpreter": {
+    "hash": "d478f2b155118de22769e18c606f2fc6fbef083591a0239b8d3da966eb9f00a4"
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
